@@ -28,6 +28,67 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Patch & Build Signed Release or Debug APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          PROJ_DIR=$(find src_project -maxdepth 3 -name "settings.gradle*" -printf '%h\n' | head -n 1)
+          echo "Building in: $PROJ_DIR"
+          cd "$PROJ_DIR"
+
+          sed -i 's/            shader = LinearGradient(/            this.shader = LinearGradient(/g' app/src/main/java/com/sumuw/launcher/core/GlassEngine.kt
+
+          python3 - << 'PYEOF'
+          import pathlib
+          p = pathlib.Path("app/src/main/java/com/sumuw/launcher/wallpaper/SumuwWallpaperService.kt")
+          t = p.read_text(encoding="utf-8")
+          line = "        private data class Particle(var x: Float, var y: Float, var speed: Float, var size: Float, var alpha: Int)\n"
+          if line in t:
+              t = t.replace(line, "")
+              t = t.replace("    override fun onCreateEngine(): Engine = SumuwEngine()", "    private data class Particle(var x: Float, var y: Float, var speed: Float, var size: Float, var alpha: Int)\n\n    override fun onCreateEngine(): Engine = SumuwEngine()")
+              p.write_text(t, encoding="utf-8")
+          PYEOF
+
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+            export KEYSTORE_PATH="$(pwd)/release.keystore"
+            gradle assembleRelease --no-daemon
+          else
+            gradle assembleDebug --no-daemon
+          fi
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SumuwNativeLauncher-apk
+          path: src_project/**/build/outputs/apk/**/*.apk:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Unzip project archive
+        run: |
+          mkdir -p src_project
+          unzip -o "SumuwNativeLauncher_SDK35.zip" -d src_project
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
       - name: Build Signed Release or Debug APK
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
