@@ -40,7 +40,7 @@ jobs:
           cd "$PROJ_DIR"
 
           sed -i 's/            shader = LinearGradient(/            this.shader = LinearGradient(/g' app/src/main/java/com/sumuw/launcher/core/GlassEngine.kt
-          sed -i 's/        private data class Particle(/        \/\/ moved\n/g' app/src/main/java/com/sumuw/launcher/wallpaper/SumuwWallpaperService.kt
+          sed -i '/private data class Particle/d' app/src/main/java/com/sumuw/launcher/wallpaper/SumuwWallpaperService.kt
           sed -i 's/    override fun onCreateEngine(): Engine = SumuwEngine()/    private data class Particle(var x: Float, var y: Float, var speed: Float, var size: Float, var alpha: Int)\n    override fun onCreateEngine(): Engine = SumuwEngine()/g' app/src/main/java/com/sumuw/launcher/wallpaper/SumuwWallpaperService.kt
 
           if [ -n "$KEYSTORE_BASE64" ]; then
