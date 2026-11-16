@@ -34,26 +34,9 @@ jobs:
           PROJ_DIR=$(find src_project -maxdepth 3 -name "settings.gradle*" -printf '%h\n' | head -n 1)
           echo "Project dir: $PROJ_DIR"
           cd "$PROJ_DIR"
-          cat << 'EOF' >> gradle.properties
-
-          android.useAndroidX=true
-          org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
-          EOF
-
-          python3 - << 'PYEOF'
-          import pathlib, re
-          p = pathlib.Path("app/src/main/java/com/sumuw/launcher/ui/screens/SmartStackWidget.kt")
-          txt = p.read_text(encoding="utf-8")
-          txt = txt.replace("import android.icu.util.IslamicUmalquraCalendar", "import java.time.chrono.HijrahDate\nimport java.time.temporal.ChronoField")
-          txt = re.sub(
-              r"val cal = IslamicUmalquraCalendar\(\)[\s\S]*?val hijriYear = .*",
-              "val hijrah = HijrahDate.now()\n    val hijriDay = hijrah.get(ChronoField.DAY_OF_MONTH)\n    val hijriMonthIdx = hijrah.get(ChronoField.MONTH_OF_YEAR) - 1\n    val hijriYear = hijrah.get(ChronoField.YEAR)",
-              txt,
-              count=1
-          )
-          p.write_text(txt, encoding="utf-8")
-          PYEOF
-
+          printf "\nandroid.useAndroidX=true\norg.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m\n" >> gradle.properties
+          sed -i 's/import android\.icu\.util\.IslamicUmalquraCalendar/import android.icu.util.IslamicCalendar\nimport android.icu.util.ULocale/g' app/src/main/java/com/sumuw/launcher/ui/screens/SmartStackWidget.kt
+          sed -i 's/IslamicUmalquraCalendar()/IslamicCalendar(ULocale("@calendar=islamic-umalqura"))/g' app/src/main/java/com/sumuw/launcher/ui/screens/SmartStackWidget.kt
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
             ./gradlew assembleDebug --no-daemon
