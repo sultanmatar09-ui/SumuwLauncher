@@ -15,7 +15,9 @@ jobs:
       - name: Unzip project archive
         run: |
           mkdir -p src_project
-          if [ -f "SumuwNativeLauncher_SDK35.zip" ]; then
+          if [ -f "SumuwLauncher_v3.12_Capsules.zip" ]; then
+            unzip -qo "SumuwLauncher_v3.12_Capsules.zip" -d src_project
+          elif [ -f "SumuwNativeLauncher_SDK35.zip" ]; then
             unzip -qo "SumuwNativeLauncher_SDK35.zip" -d src_project
           elif [ -f "SaraHome-source-v3.12.zip" ]; then
             unzip -qo "SaraHome-source-v3.12.zip" -d src_project
