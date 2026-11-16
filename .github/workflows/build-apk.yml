@@ -33,7 +33,9 @@ jobs:
         run: |
           PROJ_DIR=$(find src_project -maxdepth 3 -name "settings.gradle*" -printf '%h\n' | head -n 1)
           echo "Project dir: $PROJ_DIR"
-          cd "$PROJ_DIR"
+          cd "$PROJ_DIR" 
+          echo "" >> gradle.properties
+          echo "android.useAndroidX=true" >> gradle.properties
           if [ -f "./gradlew" ]; then
             chmod +x ./gradlew
             ./gradlew assembleDebug --no-daemon
