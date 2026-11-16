@@ -15,8 +15,8 @@ jobs:
       - name: Unzip project archive
         run: |
           mkdir -p src_project
-          if [ -f "SumuwLauncher_v3.12_Capsules.zip" ]; then
-            unzip -qo "SumuwLauncher_v3.12_Capsules.zip" -d src_project
+          if [ -f "SumuwNative_v2.2_AMOLED_120Hz_UnifiedStack.zip" ]; then
+            unzip -qo "SumuwNative_v2.2_AMOLED_120Hz_UnifiedStack.zip" -d src_project
           elif [ -f "SumuwNativeLauncher_SDK35.zip" ]; then
             unzip -qo "SumuwNativeLauncher_SDK35.zip" -d src_project
           elif [ -f "SaraHome-source-v3.12.zip" ]; then
@@ -54,10 +54,7 @@ jobs:
             PROJ_DIR=$(find src_project -maxdepth 3 -name "settings.gradle*" -printf '%h\n' | head -n 1)
             echo "Building Gradle project in: $PROJ_DIR"
             cd "$PROJ_DIR"
-            sed -i 's/            shader = LinearGradient(/            this.shader = LinearGradient(/g' app/src/main/java/com/sumuw/launcher/core/GlassEngine.kt || true
-            sed -i '/private data class Particle/d' app/src/main/java/com/sumuw/launcher/wallpaper/SumuwWallpaperService.kt || true
-            sed -i 's/    override fun onCreateEngine(): Engine = SumuwEngine()/    private data class Particle(var x: Float, var y: Float, var speed: Float, var size: Float, var alpha: Int)\n    override fun onCreateEngine(): Engine = SumuwEngine()/g' app/src/main/java/com/sumuw/launcher/wallpaper/SumuwWallpaperService.kt || true
-            gradle assembleDebug --no-daemon
+                    if [ -f "gradlew" ]; then chmod +x gradlew && ./gradlew assembleDebug --no-daemon; else gradle assembleDebug --no-daemon; fi
           fi
 
       - name: Upload APK Artifact
